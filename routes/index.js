@@ -13,7 +13,23 @@ var crypto = require('crypto'),
     User = require('../models/user.js'),
     Post = require('../models/post.js');
 
+//添加图片上传功能
+var multer = require('multer');
+var storage = multer.diskStorage({
+  destination:function (req,file,cb) {
+    cb(null,'./public/images');
+  },
+  filename:function (req,file,cb) {
+    cb(null,file.originalname)
+  }
+});
+var upload =multer({
+  storage:storage
+});
+
+
 module.exports = function (app) {
+  //主页
   app.get('/', function (req, res) {
     Post.get(null, function (err, posts) {
       if (err) {
@@ -28,7 +44,7 @@ module.exports = function (app) {
       });
     });
   });
-
+//注册
   app.get('/reg', checkNotLogin);
   app.get('/reg', function (req, res) {
     res.render('reg',{
@@ -79,7 +95,7 @@ module.exports = function (app) {
       });
     });
   });
-
+//登陆
   app.get('/login', checkNotLogin);
   app.get('/login', function (req, res) {
     res.render('login', {
@@ -112,7 +128,7 @@ module.exports = function (app) {
       res.redirect('/');//登陆成功后跳转到主页
     });
   });
-
+//发表
   app.get('/post',checkLogin);
   app.get('/post', function (req, res) {
     res.render('post', {
@@ -139,7 +155,7 @@ module.exports = function (app) {
 
   });
 
-
+//登出
   app.get('/logout',checkLogin);
   app.get('/logout', function (req, res) {
 
@@ -150,7 +166,17 @@ module.exports = function (app) {
   });
 
 
-
+  app.get('/upload',checkLogin);
+  app.get('/upload',function (req,res) {
+    res.render('upload', {
+      title: '文件上传',
+      user: req.session.user,
+      success: req.flash('success').toString(),
+      error: req.flash('error').toString()
+    });
+  });
+  
+  
   function checkLogin(req,res,next) {
     if(!req.session.user) {
       req.flash('error','未登录');
